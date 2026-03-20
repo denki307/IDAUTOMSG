@@ -64,7 +64,7 @@ async def start_bot():
                         await app.send_message(LOG_CHANNEL, f"✅ **Success:** `{group.chat.title}`")
                         
                         # Random Delay between 30 to 60 seconds
-                        wait_time = random.randint(15, 30)
+                        wait_time = random.randint(5, 10)
                         await asyncio.sleep(wait_time)
 
                     except Exception as e:
