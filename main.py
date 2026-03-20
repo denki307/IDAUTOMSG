@@ -6,7 +6,7 @@ from pyrogram import Client, enums
 api_id = int(os.environ.get("API_ID"))
 api_hash = os.environ.get("API_HASH")
 session_string = os.environ.get("SESSION_STRING")
-log_channel = int(os.environ.get("-1003735021874"))
+log_channel = int(os.environ.get(""))
 
 my_message = os.environ.get("MY_MESSAGE")
 
