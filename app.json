@@ -1,0 +1,46 @@
+{
+  "name": "Telegram Auto Group Messenger",
+  "description": "Unga Telegram account moolama ellaa groups-layum 10 mins-ku oru dharava message anupum.",
+  "repository": "https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME",
+  "logo": "https://telegra.ph/file/anime-neon-bot.jpg",
+  "keywords": [
+    "telegram",
+    "userbot",
+    "pyrogram",
+    "auto-message"
+  ],
+  "env": {
+    "API_ID": {
+      "description": "Unga API ID (my.telegram.org-la eduthadhu)",
+      "value": "",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Unga API HASH (my.telegram.org-la eduthadhu)",
+      "value": "",
+      "required": true
+    },
+    "SESSION_STRING": {
+      "description": "Unga Pyrogram Session String (Termux-la generate pannanum)",
+      "value": "",
+      "required": true
+    },
+    "MY_MESSAGE": {
+      "description": "Anupa vendiya message",
+      "value": "🎁 We’ve Launched Our New Bot! 🎁\n\nExperience smoother, faster, and easier service with our brand-new bot. Whether you’re buying OTPs or readymade accounts – everything is now more seamless than ever! ✔️\n\n📞 Support: @DevilComingSoon 🌟\n✈️ Bot Link: @OTP_WANTED_ROBOT❤️",
+      "required": true
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
+
