@@ -9,7 +9,14 @@ try:
     API_ID = int(os.environ.get("API_ID"))
     API_HASH = os.environ.get("API_HASH")
     SESSION_STRING = os.environ.get("SESSION_STRING")
-    LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL"))
+    
+    # LOG_CHANNEL-ah string-ah edukkom (ID or Username)
+    LOG_INPUT = os.environ.get("LOG_CHANNEL")
+    if LOG_INPUT.startswith("-100"):
+        LOG_CHANNEL = int(LOG_INPUT)
+    else:
+        LOG_CHANNEL = LOG_INPUT  # Example: "MyLogChannel" or "@MyLogChannel"
+        
     MY_MESSAGE = os.environ.get("MY_MESSAGE")
 except Exception as e:
     print(f"❌ Config Vars Error: {e}")
@@ -23,82 +30,68 @@ app = Client(
     in_memory=True
 )
 
+async def safe_log(text):
+    """Log channel-ku safe-ah message anuppum"""
+    try:
+        await app.send_message(LOG_CHANNEL, text)
+    except Exception as e:
+        print(f"⚠️ Log Failed: {e}")
+
 async def start_bot():
     async with app:
-        # Start Notification with Safety
-        try:
-            await app.send_message(LOG_CHANNEL, "🚀 **UserBot Started!**\n\n✅ **Safety Mode:** Active\n📦 **Batch Size:** 50 Groups\n⏳ **Round Interval:** 30 Minutes")
-        except Exception as e:
-            print(f"⚠️ Log Channel Message Failed (Check if you joined): {e}")
+        # Start notification
+        await safe_log("🚀 **UserBot Started!**\n30-minute interval mode active.")
 
         while True:
             all_groups = []
-            # Collecting all groups from account
-            async for dialog in app.get_dialogs():
-                if dialog.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-                    all_groups.append(dialog)
+            try:
+                # Limit 300 dialogs to find groups
+                async for dialog in app.get_dialogs(limit=300):
+                    if dialog.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+                        all_groups.append(dialog)
+            except Exception as e:
+                print(f"⚠️ Error fetching groups: {e}")
 
-            random.shuffle(all_groups) # Shuffle for safety
+            if not all_groups:
+                print("❌ No groups found. Retrying in 5 mins...")
+                await asyncio.sleep(300)
+                continue
+
+            random.shuffle(all_groups)
             total_groups = len(all_groups)
             success_count = 0
             failed_count = 0
 
-            # 50-50 Batch processing
+            # Batch processing (50 groups)
             for i in range(0, total_groups, 50):
                 batch = all_groups[i : i + 50]
-                current_batch_num = (i // 50) + 1
-                
-                try:
-                    await app.send_message(
-                        LOG_CHANNEL, 
-                        f"📦 **Starting Batch {current_batch_num}**\nSending to groups {i+1} to {min(i+50, total_groups)}..."
-                    )
-                except:
-                    pass
+                await safe_log(f"📦 **Starting Batch:** Groups {i+1} to {min(i+50, total_groups)}")
 
                 for group in batch:
                     try:
-                        # Sending the message to group
                         await app.send_message(group.chat.id, MY_MESSAGE)
                         success_count += 1
                         
-                        # Logging success with safety
-                        try:
-                            await app.send_message(LOG_CHANNEL, f"✅ **Success:** `{group.chat.title}`")
-                        except:
-                            pass
+                        # Log success
+                        await safe_log(f"✅ **Success:** `{group.chat.title}`")
                         
-                        # Random delay between messages (5-10s)
+                        # 5 to 10s gap between messages
                         await asyncio.sleep(random.randint(5, 10))
-
                     except Exception as e:
                         failed_count += 1
                         print(f"Failed in {group.chat.title}: {e}")
-                        await asyncio.sleep(5)
+                        await asyncio.sleep(3)
 
-                # 5-minute break after 50 groups
+                # 5-minute break after each batch of 50
                 if i + 50 < total_groups:
-                    try:
-                        await app.send_message(LOG_CHANNEL, "⏳ **Batch Completed.** Taking a 5-minute break...")
-                    except:
-                        pass
-                    await asyncio.sleep(300) 
+                    await safe_log("⏳ **Batch Done.** 5-minute break...")
+                    await asyncio.sleep(300)
 
-            # Round Summary Message
-            summary = (
-                f"📊 **Full Round Completed!**\n\n"
-                f"✅ Total Success: {success_count}\n"
-                f"❌ Total Failed: {failed_count}\n"
-                f"👥 Total Groups: {total_groups}\n\n"
-                f"💤 **Next round starts in 30 minutes...**"
-            )
-            try:
-                await app.send_message(LOG_CHANNEL, summary)
-            except:
-                print(summary)
+            # Round summary
+            await safe_log(f"📊 **Round Done!**\n✅ Success: {success_count}\n❌ Failed: {failed_count}\n💤 Next round in 30 mins.")
             
-            # Wait 30 minutes for the next round
-            await asyncio.sleep(1800) 
+            # Wait 30 minutes for the next full round
+            await asyncio.sleep(1800)
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
